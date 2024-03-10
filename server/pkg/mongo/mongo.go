@@ -1,16 +1,11 @@
-package pkg
+package mongo
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/bson/bsonrw"
-	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -46,7 +41,6 @@ type Cursor interface {
 
 type Client interface {
 	Database(string) Database
-	Connect(context.Context) error
 	Disconnect(context.Context) error
 	StartSession() (mongo.Session, error)
 	UseSession(ctx context.Context, fn func(mongo.SessionContext) error) error
@@ -75,50 +69,22 @@ type mongoSession struct {
 	mongo.Session
 }
 
-type nullawareDecoder struct {
-	defDecoder bsoncodec.ValueDecoder
-	zeroValue  reflect.Value
-}
-
-func (d *nullawareDecoder) DecodeValue(dctx bsoncodec.DecodeContext, vr bsonrw.ValueReader, val reflect.Value) error {
-	if vr.Type() != bsontype.Null {
-		return d.defDecoder.DecodeValue(dctx, vr, val)
-	}
-
-	if !val.CanSet() {
-		return errors.New("value not settable")
-	}
-	if err := vr.ReadNull(); err != nil {
-		return err
-	}
-	// Set the zero value of val's type:
-	val.Set(d.zeroValue)
-	return nil
-}
-
-func NewClient(connection string) (Client, error) {
+func NewClient(connection string, ctx context.Context) (Client, error) {
 	time.Local = time.UTC
 	// Use the SetServerAPIOptions() method to set the version of the Stable API on the client
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(connection).SetServerAPIOptions(serverAPI)
 	// Create a new client and connect to the server
-	client, err := mongo.Connect(context.Background(), opts)
+	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		if err = client.Disconnect(context.Background()); err != nil {
-			panic(err)
-		}
-	}()
-	// Send a ping to confirm a successful connection
-	if err := client.Database("admin").RunCommand(context.Background(), bson.D{{"ping", 1}}).Err(); err != nil {
+	if err := client.Database("admin").RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Err(); err != nil {
 		panic(err)
 	}
-	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
+	fmt.Println("Mongo client connected.")
 
 	return &mongoClient{cl: client}, err
-
 }
 
 func (mc *mongoClient) Ping(ctx context.Context) error {
@@ -137,10 +103,6 @@ func (mc *mongoClient) UseSession(ctx context.Context, fn func(mongo.SessionCont
 func (mc *mongoClient) StartSession() (mongo.Session, error) {
 	session, err := mc.cl.StartSession()
 	return &mongoSession{session}, err
-}
-
-func (mc *mongoClient) Connect(ctx context.Context) error {
-	return mc.cl.Connect(ctx)
 }
 
 func (mc *mongoClient) Disconnect(ctx context.Context) error {
