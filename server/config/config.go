@@ -8,23 +8,19 @@ import (
 )
 
 type Config struct {
-	ServerAddress string `mapstructure:"server_address"`
-	DatabaseURL   string `mapstructure:"database_url"`
-	MongoURI      string `mapstructure:"mongo_uri"`
+	ServerAddress         string `mapstructure:"server_address"`
+	MongoConnectionString string `mapstructure:"mongo_connection_string"`
 }
 
-func LoadConfig(configPaths ...string) (*Config, error) {
+func LoadConfig() (*Config, error) {
 	var cfg Config
 
+	viper.AddConfigPath("./config")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AutomaticEnv()
 
 	viper.SetDefault("server_address", "localhost:8080")
-
-	for _, path := range configPaths {
-		viper.AddConfigPath(path)
-	}
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("error reading config file, %s", err)
@@ -38,7 +34,7 @@ func LoadConfig(configPaths ...string) (*Config, error) {
 }
 
 func init() {
-	config, err := LoadConfig(".")
+	config, err := LoadConfig()
 	if err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
