@@ -10,6 +10,7 @@ import (
 type Config struct {
 	ServerAddress         string `mapstructure:"server_address"`
 	MongoConnectionString string `mapstructure:"mongo_connection_string"`
+	MongoDBName           string `mapstructure:"mongo_db_name"`
 }
 
 func LoadConfig() (*Config, error) {

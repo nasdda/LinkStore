@@ -19,8 +19,8 @@ func newLinkRoutes(handler *gin.RouterGroup, link interfaces.Link) {
 
 	h := handler.Group("/translation")
 	{
-		h.GET("/", r.history)
-		h.POST("/", r.doTranslate)
+		h.GET("/", r.getLink)
+		h.POST("/", r.createLink)
 	}
 }
 
@@ -28,9 +28,9 @@ func newLinkRoutes(handler *gin.RouterGroup, link interfaces.Link) {
 // 	History []entity.Translation `json:"history"`
 // }
 
-func (r *linkRoutes) history(c *gin.Context) {
+func (r *linkRoutes) getLink(c *gin.Context) {
 }
 
-func (r *linkRoutes) doTranslate(c *gin.Context) {
+func (r *linkRoutes) createLink(c *gin.Context) {
 	// c.JSON(http.StatusOK, translation)
 }
