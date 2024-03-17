@@ -1,18 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/nasdda/linkstore/config"
+	"github.com/nasdda/linkstore/internal/app"
 )
 
 func main() {
-	config, err := config.LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
-
-	fmt.Println("Config loaded:", config)
-
+	app.Run(cfg)
 }

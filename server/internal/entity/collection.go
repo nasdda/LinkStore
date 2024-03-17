@@ -6,7 +6,7 @@ const (
 )
 
 type Collection struct {
-	ID    string   `json:"id" bson:"id,omitempty"`
+	ID    OID      `json:"id" bson:"id,omitempty"`
 	Name  string   `json:"name" bson:"name"`
 	Links []string `json:"links" bson:"links"`
 }

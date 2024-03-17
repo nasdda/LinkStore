@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/viper"
 )
@@ -11,6 +10,7 @@ type Config struct {
 	ServerAddress         string `mapstructure:"server_address"`
 	MongoConnectionString string `mapstructure:"mongo_connection_string"`
 	MongoDBName           string `mapstructure:"mongo_db_name"`
+	Port                  string `mapstructure:"port"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -32,13 +32,4 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &cfg, nil
-}
-
-func init() {
-	config, err := LoadConfig()
-	if err != nil {
-		log.Fatalf("error loading config: %v", err)
-	}
-
-	fmt.Println("Config loaded:", config)
 }
